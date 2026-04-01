@@ -17,6 +17,7 @@ const TYPE_COLORS: Record<string, string> = {
   json:  "#f59e0b",
   color: "#ec4899",
   email: "#10b981",
+  image: "#f97316",
   text:  "#6b7280",
 };
 
@@ -26,6 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   json:  "JSON",
   color: "COLOR",
   email: "EMAIL",
+  image: "IMAGE",
   text:  "TEXT",
 };
 
@@ -49,10 +51,26 @@ export default function Home() {
   // poll clipboard every 1.5s
   useEffect(() => {
     loadClips();
+    let lastText = "";
+    let lastImage = "";
+    
     const interval = setInterval(async () => {
       try {
+        // Check for image first
+        const imgData = await invoke<string | null>("get_clipboard_image");
+        if (imgData && imgData !== lastImage) {
+          lastImage = imgData;
+          lastText = "";
+          await invoke("save_clip", { content: imgData });
+          loadClips(search);
+          return;
+        }
+        
+        // Check for text
         const text = await invoke<string>("get_clipboard_now");
-        if (text && text.trim()) {
+        if (text && text.trim() && text !== lastText) {
+          lastText = text;
+          lastImage = "";
           await invoke("save_clip", { content: text });
           loadClips(search);
         }
@@ -240,19 +258,27 @@ export default function Home() {
             </div>
 
             {/* content preview */}
-            <div style={{
-              fontSize: 13,
-              color: copied === clip.id ? "#10b981" : "#c4c4d4",
-              fontFamily: clip.content_type === "code" || clip.content_type === "json"
-                ? "monospace" : "inherit",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              maxHeight: 80,
-              overflow: "hidden",
-              lineHeight: 1.5,
-            }}>
-              {copied === clip.id ? "✓ Copied!" : clip.content}
-            </div>
+            {clip.content_type === "image" ? (
+              <img
+                src={`data:image/png;base64,${clip.content}`}
+                alt="clipboard image"
+                style={{ maxWidth: "100%", maxHeight: 80, borderRadius: 4 }}
+              />
+            ) : (
+              <div style={{
+                fontSize: 13,
+                color: copied === clip.id ? "#10b981" : "#c4c4d4",
+                fontFamily: clip.content_type === "code" || clip.content_type === "json"
+                  ? "monospace" : "inherit",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-all",
+                maxHeight: 80,
+                overflow: "hidden",
+                lineHeight: 1.5,
+              }}>
+                {copied === clip.id ? "✓ Copied!" : clip.content}
+              </div>
+            )}
           </div>
         ))}
       </div>

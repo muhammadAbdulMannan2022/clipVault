@@ -80,6 +80,12 @@ fn detect_type(content: &str) -> &'static str {
     "text"
 }
 
+#[tauri::command]
+fn get_clipboard_now() -> Result<String, String> {
+    let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
+    clipboard.get_text().map_err(|e| e.to_string())
+}
+
 // ── Tauri commands ────────────────────────────────────────────
 
 #[tauri::command]
@@ -181,15 +187,36 @@ fn toggle_pin(id: i64, state: State<AppState>) -> Result<(), String> {
 #[tauri::command]
 fn clear_all(state: State<AppState>) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    db.execute("DELETE FROM clips WHERE pinned = 0", [])
+    db.execute("DELETE FROM clips", [])
         .map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[tauri::command]
-fn get_clipboard_now() -> Result<String, String> {
+fn get_clipboard_image() -> Result<Option<String>, String> {
     let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
-    clipboard.get_text().map_err(|e| e.to_string())
+    if let Ok(img) = clipboard.get_image() {
+        use image::{ImageBuffer, Rgba};
+        let width = img.width as u32;
+        let height = img.height as u32;
+
+        let img_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_raw(width, height, img.bytes.to_vec())
+                .ok_or("Failed to create image buffer")?;
+
+        let mut buffer = Vec::new();
+        let mut cursor = std::io::Cursor::new(&mut buffer);
+        img_buffer
+            .write_to(&mut cursor, image::ImageFormat::Png)
+            .map_err(|e| e.to_string())?;
+
+        Ok(Some(base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            &buffer,
+        )))
+    } else {
+        Ok(None)
+    }
 }
 
 // ── App entry point ───────────────────────────────────────────
@@ -218,6 +245,7 @@ pub fn run() {
             toggle_pin,
             clear_all,
             get_clipboard_now,
+            get_clipboard_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
