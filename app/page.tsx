@@ -11,14 +11,14 @@ interface ClipItem {
   pinned: boolean;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  url:   "#e8637a",
-  code:  "#8b5cf6",
-  json:  "#f59e0b",
-  color: "#ec4899",
-  email: "#10b981",
-  image: "#f97316",
-  text:  "#64748b",
+const TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  url:   { bg: "#E8F4FD", text: "#2D8FE5", dot: "#3B82F6" },
+  code:  { bg: "#EDE9FE", text: "#7C5CFC", dot: "#8B5CF6" },
+  json:  { bg: "#FEF3E2", text: "#D97706", dot: "#F59E0B" },
+  color: { bg: "#FCE7F3", text: "#DB2777", dot: "#EC4899" },
+  email: { bg: "#D1FAE5", text: "#059669", dot: "#10B981" },
+  image: { bg: "#FFEDD5", text: "#EA580C", dot: "#F97316" },
+  text:  { bg: "#F3F4F6", text: "#6B7280", dot: "#9CA3AF" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -118,109 +118,132 @@ export default function Home() {
       display: "flex", 
       flexDirection: "column", 
       height: "100vh",
-      background: "linear-gradient(135deg, #f2c4ce 0%, #e8a0b0 50%, #d4849a 100%)",
-      fontFamily: "'DM Sans', 'Inter', sans-serif",
+      background: "#EEEEF4",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         ::-webkit-scrollbar {
           width: 6px;
         }
         ::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.1);
+          background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-          background: rgba(232, 99, 122, 0.4);
+          background: rgba(122, 92, 252, 0.2);
           border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-          background: rgba(232, 99, 122, 0.6);
+          background: rgba(122, 92, 252, 0.4);
         }
         input::placeholder {
-          color: #888;
+          color: #AAAAB5;
         }
       `}</style>
 
       {/* Header */}
       <div style={{
-        padding: "20px 24px",
+        padding: "20px 28px",
         display: "flex",
         alignItems: "center",
-        gap: 16,
-        background: "rgba(255, 255, 255, 0.25)",
-        backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
+        gap: 20,
+        background: "#FFFFFF",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
       }}>
         <div style={{ 
-          fontSize: 28, 
-          fontWeight: 800, 
-          color: "#1a1a1a",
-          letterSpacing: -1,
+          fontSize: 26, 
+          fontWeight: 700, 
+          color: "#1A1A2E",
+          letterSpacing: -0.5,
         }}>
           ClipVault
         </div>
+        
         <div style={{
-          width: 12,
-          height: 12,
+          width: 8,
+          height: 8,
           borderRadius: "50%",
-          background: "#e8637a",
+          background: "#7C5CFC",
         }} />
+        
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search clips..."
           style={{
             flex: 1,
-            background: "rgba(255, 255, 255, 0.5)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            background: "#F8F8FA",
+            border: "1px solid transparent",
             borderRadius: 50,
             padding: "12px 20px",
-            color: "#1a1a1a",
+            color: "#1A1A2E",
             fontSize: 14,
             outline: "none",
             fontFamily: "inherit",
+            transition: "all 0.2s",
           }}
         />
+        
         <div style={{ 
           fontSize: 13, 
-          color: "#555", 
+          color: "#8A8A9A", 
           minWidth: 80,
           fontWeight: 500,
         }}>
           {clips.length} clips
         </div>
+        
         <button
           onClick={clearAll}
           style={{
-            background: "#1a1a1a",
-            color: "#fff",
-            border: "none",
+            background: "transparent",
+            color: "#E74C3C",
+            border: "1px solid #E74C3C",
             borderRadius: 50,
-            padding: "12px 24px",
+            padding: "10px 20px",
             fontSize: 13,
             fontWeight: 600,
             cursor: "pointer",
             fontFamily: "inherit",
+            transition: "all 0.2s",
           }}
         >
           Clear all
         </button>
+        
         {status && (
-          <div style={{ fontSize: 13, color: "#1a1a1a", fontWeight: 500 }}>{status}</div>
+          <div style={{ 
+            fontSize: 13, 
+            color: "#2ECC71", 
+            fontWeight: 600,
+            padding: "8px 16px",
+            background: "#D1FAE5",
+            borderRadius: 50,
+          }}>
+            {status}
+          </div>
         )}
       </div>
 
-      {/* Clip list */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+      {/* Clip grid */}
+      <div style={{ 
+        flex: 1, 
+        overflowY: "auto", 
+        padding: "24px 28px",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: 16,
+        alignContent: "start",
+      }}>
         {clips.length === 0 && (
           <div style={{
+            gridColumn: "1 / -1",
             textAlign: "center",
-            color: "#888",
+            color: "#AAAAB5",
             marginTop: 100,
-            fontSize: 24,
-            fontWeight: 700,
-            letterSpacing: -0.5,
+            fontSize: 20,
+            fontWeight: 600,
           }}>
             Copy something to get started
           </div>
@@ -230,26 +253,28 @@ export default function Home() {
           <div
             key={clip.id}
             style={{
-              background: "rgba(255, 255, 255, 0.25)",
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 255, 255, 0.4)",
-              borderLeft: `4px solid ${TYPE_COLORS[clip.content_type] ?? "#64748b"}`,
-              borderRadius: 20,
-              padding: "16px 20px",
-              marginBottom: 14,
+              background: "#FFFFFF",
+              borderRadius: 16,
+              padding: "20px 24px",
               cursor: "pointer",
               transition: "all 0.2s",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
             }}
             onClick={() => copyToClipboard(clip)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#E8E8F0";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#FFFFFF";
+            }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
               {/* type badge */}
               <span style={{
                 fontSize: 11,
                 fontWeight: 600,
-                color: "#fff",
-                background: "#1a1a1a",
+                color: TYPE_COLORS[clip.content_type]?.text || "#6B7280",
+                background: TYPE_COLORS[clip.content_type]?.bg || "#F3F4F6",
                 padding: "6px 12px",
                 borderRadius: 50,
                 letterSpacing: 0.5,
@@ -263,7 +288,7 @@ export default function Home() {
                   width: 18, height: 18,
                   borderRadius: 6,
                   background: clip.content,
-                  border: "2px solid rgba(255,255,255,0.5)",
+                  border: "2px solid #E5E7EB",
                   display: "inline-block",
                 }} />
               )}
@@ -271,47 +296,9 @@ export default function Home() {
               <span style={{ flex: 1 }} />
 
               {/* timestamp */}
-              <span style={{ fontSize: 12, color: "#555", fontWeight: 500 }}>
+              <span style={{ fontSize: 12, color: "#AAAAB5", fontWeight: 500 }}>
                 {clip.created_at}
               </span>
-
-              {/* pin button */}
-              <button
-                onClick={e => { e.stopPropagation(); togglePin(clip.id); }}
-                style={{
-                  background: clip.pinned ? "#1a1a1a" : "transparent",
-                  border: "1px solid rgba(0,0,0,0.1)",
-                  fontSize: 12,
-                  color: clip.pinned ? "#fff" : "#555",
-                  padding: "6px 14px",
-                  borderRadius: 50,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontFamily: "inherit",
-                }}
-                title={clip.pinned ? "Unpin" : "Pin"}
-              >
-                {clip.pinned ? "Pinned" : "Pin"}
-              </button>
-
-              {/* delete button */}
-              <button
-                onClick={(e) => deleteClip(e, clip.id)}
-                style={{
-                  background: "#1a1a1a",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 12,
-                  padding: "6px 14px",
-                  borderRadius: 50,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontFamily: "inherit",
-                }}
-                title="Delete"
-              >
-                Delete
-              </button>
             </div>
 
             {/* content preview */}
@@ -319,14 +306,18 @@ export default function Home() {
               <img
                 src={`data:image/png;base64,${clip.content}`}
                 alt="clipboard image"
-                style={{ maxWidth: "100%", maxHeight: 120, borderRadius: 12, border: "1px solid rgba(255,255,255,0.3)" }}
+                style={{ 
+                  maxWidth: "100%", 
+                  maxHeight: 140, 
+                  borderRadius: 12, 
+                }}
               />
             ) : (
               <div style={{
                 fontSize: 14,
-                color: copied === clip.id ? "#1a1a1a" : "#333",
+                color: copied === clip.id ? "#2ECC71" : "#1A1A2E",
                 fontFamily: clip.content_type === "code" || clip.content_type === "json"
-                  ? "monospace" : "inherit",
+                  ? "'SF Mono', 'Consolas', monospace" : "inherit",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-all",
                 maxHeight: 80,
@@ -337,6 +328,53 @@ export default function Home() {
                 {copied === clip.id ? "✓ Copied!" : clip.content}
               </div>
             )}
+
+            {/* Actions */}
+            <div style={{ 
+              display: "flex", 
+              gap: 8, 
+              marginTop: 16,
+              paddingTop: 14,
+              borderTop: "1px solid #F3F4F6",
+            }}>
+              <button
+                onClick={e => { e.stopPropagation(); togglePin(clip.id); }}
+                style={{
+                  background: clip.pinned ? "#D1FAE5" : "transparent",
+                  border: clip.pinned ? "1px solid #2ECC71" : "1px solid #E5E7EB",
+                  color: clip.pinned ? "#059669" : "#8A8A9A",
+                  fontSize: 12,
+                  padding: "8px 16px",
+                  borderRadius: 50,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                  flex: 1,
+                }}
+                title={clip.pinned ? "Unpin" : "Pin"}
+              >
+                {clip.pinned ? "Pinned" : "Pin"}
+              </button>
+
+              <button
+                onClick={(e) => deleteClip(e, clip.id)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid #FEE2E2",
+                  color: "#E74C3C",
+                  fontSize: 12,
+                  padding: "8px 16px",
+                  borderRadius: 50,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                  flex: 1,
+                }}
+                title="Delete"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
